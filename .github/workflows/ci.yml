@@ -4,6 +4,11 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+
+permissions:
+  contents: read
+
+# Every job runs the same commands agents run: .github/scripts/check.sh <step>.
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -12,5 +17,90 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install -r requirements.txt
-      - run: pytest -q
+          cache: pip
+          cache-dependency-path: requirements*.txt
+      - run: pip install -r requirements-dev.txt
+      - run: bash .github/scripts/check.sh test
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements*.txt
+      - run: pip install -r requirements-dev.txt
+      - run: bash .github/scripts/check.sh lint
+
+  types:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements*.txt
+      - run: pip install -r requirements-dev.txt
+      - run: bash .github/scripts/check.sh types
+
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements*.txt
+      - run: pip install -r requirements-dev.txt
+      - run: bash .github/scripts/check.sh security
+
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements*.txt
+      - run: pip install -r requirements-dev.txt
+      - run: bash .github/scripts/check.sh e2e
+
+  acceptance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements*.txt
+      - run: pip install -r requirements-dev.txt
+      - name: Spec and acceptance tests match
+        run: python .github/scripts/spec_check.py
+      - name: Acceptance tests on this commit (failures are judged by the ratchet below)
+        run: bash .github/scripts/check.sh acceptance --junit "$RUNNER_TEMP/head.xml" || true
+      - name: Acceptance tests on the base commit
+        env:
+          BASE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          if [ -z "$BASE_SHA" ] || [ "$BASE_SHA" = "0000000000000000000000000000000000000000" ]; then
+            echo "no base commit"; exit 0
+          fi
+          git worktree add --detach "$RUNNER_TEMP/base" "$BASE_SHA"
+          cd "$RUNNER_TEMP/base"
+          bash "$GITHUB_WORKSPACE/.github/scripts/check.sh" acceptance --junit "$RUNNER_TEMP/base.xml" || true
+      - name: Ratchet (a test passing on base must pass here; no skips)
+        run: python .github/scripts/acceptance_ratchet.py "$RUNNER_TEMP/base.xml" "$RUNNER_TEMP/head.xml"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: acceptance-junit
+          path: ${{ runner.temp }}/*.xml
+          if-no-files-found: warn

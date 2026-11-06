@@ -4,16 +4,10 @@ This is a small FastAPI test app.
 
 ## Setup
 
-Install the dependencies from the repository root:
+Install the runtime and development dependencies (versions are pinned):
 
 ```sh
-pip install -r requirements.txt
-```
-
-Install Uvicorn separately to run the app (it is not in `requirements.txt`):
-
-```sh
-pip install uvicorn
+pip install -r requirements-dev.txt
 ```
 
 ## Run
@@ -24,11 +18,15 @@ uvicorn main:app --reload
 
 The app runs at `http://127.0.0.1:8000`.
 
-## Test
+## Checks
+
+The same commands CI runs (lint, types, unit tests with the coverage floor, security, e2e):
 
 ```sh
-pytest -q
+bash .github/scripts/check.sh all
 ```
+
+Project rules for agents and humans are in [AGENTS.md](AGENTS.md).
 
 ## Endpoints
 
