@@ -21,7 +21,7 @@
     {
       "name": "github-api",
       "source": "ai/skills/github-api",
-      "sha256": "228356a42e1f6a151f287694462ed00329a3ffc1819e579dc8f0f8a9e70adaf3"
+      "sha256": "df3045ef6b7c75cb3240045281876e73504345dd920a99936f735541cad00c77"
     },
     {
       "name": "repo-workflow",

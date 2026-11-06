@@ -19,6 +19,7 @@ Read a PR or an issue:
 ```sh
 curl "${GH[@]}" $API/pulls/<n> > /tmp/pr.json
 python3 -c 'import json; d=json.load(open("/tmp/pr.json")); print(d["head"]["sha"], d["head"]["ref"], d["title"])'
+python3 -c 'import json; print(json.load(open("/tmp/pr.json"))["head"]["sha"], end="")' > /tmp/head_sha
 curl "${GH[@]}" $API/issues/<k> > /tmp/issue.json
 ```
 
@@ -40,5 +41,10 @@ Commit status (reviewer only; the description can be at most 140 characters):
 ```sh
 python3 -c 'import json,sys; print(json.dumps({"state": sys.argv[1], "context": "agent-review", "description": sys.argv[2][:140]}))' \
   "<success|failure>" "<summary>" > /tmp/status.json
-curl "${GH[@]}" -X POST $API/statuses/<sha> -d @/tmp/status.json > /dev/null
+curl "${GH[@]}" -X POST "$API/statuses/$(cat /tmp/head_sha)" -d @/tmp/status.json > /tmp/status_out.json \
+  || { echo "STATUS POST FAILED"; cat /tmp/status_out.json; }
+curl "${GH[@]}" "$API/commits/$(cat /tmp/head_sha)/statuses" > /tmp/statuses.json
+python3 -c 'import json; s=[x for x in json.load(open("/tmp/statuses.json")) if x["context"]=="agent-review"]; print("agent-review status:", s[0]["state"] if s else "MISSING")'
 ```
+Never type a SHA by hand: always use `$(cat /tmp/head_sha)`, written from the API above.
+If the read-back prints MISSING, the status did not land: say so in your reply (REVIEW_RESULT: error).
