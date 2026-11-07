@@ -23,8 +23,9 @@ CLAUDE.md and GEMINI.md only import this file.
 ## Commands (exactly what CI runs)
 
 ```sh
-python3 -m venv /tmp/venv && /tmp/venv/bin/pip install -q -r requirements-dev.txt
-export PY=/tmp/venv/bin/python
+export TMPDIR="/tmp/agent-$(id -u)"; mkdir -p -m 700 "$TMPDIR" && [ -O "$TMPDIR" ] || { echo "PRIVATE TMP FAILED"; exit 1; }   # your own folder: /tmp is shared
+python3 -m venv "$TMPDIR/venv" && "$TMPDIR/venv/bin/pip" install -q -r requirements-dev.txt
+export PY="$TMPDIR/venv/bin/python"
 bash .github/scripts/check.sh all          # lint, types, unit tests + coverage floor, security, e2e
 bash .github/scripts/check.sh lint         # or one step: lint | types | test | security | e2e
 bash .github/scripts/check.sh acceptance <goal> -k "test_ac1_ or test_ac2_"   # your task's criteria
