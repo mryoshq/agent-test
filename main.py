@@ -1,9 +1,9 @@
 from datetime import datetime, timezone
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from items import Item, ItemStore
+from items import Item, ItemPage, ItemStore
 
 
 class ItemRequest(BaseModel):
@@ -30,6 +30,13 @@ def create_app() -> FastAPI:
     @app.post("/items", status_code=201, response_model=Item)
     def create_item(request: ItemRequest) -> Item:
         return app.state.item_store.create(request.name, request.price)
+
+    @app.get("/items", response_model=ItemPage)
+    def list_items(
+        offset: int = Query(default=0, ge=0),
+        limit: int = Query(default=10, ge=1, le=100),
+    ) -> ItemPage:
+        return app.state.item_store.list_items(offset, limit)
 
     @app.get("/items/{item_id}", response_model=Item)
     def read_item(item_id: int) -> Item:
