@@ -52,7 +52,8 @@ description: How acceptance tests work in agent-test (goals/<goal>/spec.md plus 
 ## Running
 
 ```sh
-export PY=/tmp/venv/bin/python
+export TMPDIR="/tmp/agent-$(id -u)"; mkdir -p -m 700 "$TMPDIR" && [ -O "$TMPDIR" ] || { echo "PRIVATE TMP FAILED"; exit 1; }
+export PY="$TMPDIR/venv/bin/python"                                          # venv from repo-workflow
 bash .github/scripts/check.sh acceptance <goal>                              # all criteria
 bash .github/scripts/check.sh acceptance <goal> -k "test_ac1_ or test_ac3_"  # only yours
 ```
