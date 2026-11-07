@@ -1,0 +1,35 @@
+[tool.pytest.ini_options]
+pythonpath = ["."]
+addopts = "--strict-markers"
+markers = ["e2e: calls a running server at E2E_BASE_URL (started by .github/scripts/check.sh)"]
+
+[tool.coverage.run]
+branch = true
+source = ["."]
+omit = ["tests/*", "test_*.py", ".github/*", "mutants/*"]
+
+[tool.coverage.report]
+skip_empty = true
+show_missing = true
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+extend-exclude = ["mutants"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "B"]
+ignore = ["E501"]
+
+[tool.ruff.lint.flake8-bugbear]
+extend-immutable-calls = ["fastapi.Depends", "fastapi.Query", "fastapi.Path", "fastapi.Body"]
+
+[tool.mypy]
+python_version = "3.12"
+check_untyped_defs = true
+warn_unused_ignores = true
+# Acceptance tests import code that does not exist until the goal is built.
+exclude = ["^tests/acceptance/", "^mutants/"]
+
+[tool.bandit]
+exclude_dirs = ["tests", "mutants", ".venv"]

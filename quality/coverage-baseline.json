@@ -1,0 +1,4 @@
+{
+  "percent": 95.0,
+  "note": "CI floor for line + branch coverage of unit tests. Changed only by a PR the repo owner merges."
+}
