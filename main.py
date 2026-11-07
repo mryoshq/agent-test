@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Response
 from pydantic import BaseModel, Field
 
 from items import Item, ItemPage, ItemStore
@@ -51,6 +51,12 @@ def create_app() -> FastAPI:
         if item is None:
             raise HTTPException(status_code=404, detail="Item not found")
         return item
+
+    @app.delete("/items/{item_id}", status_code=204)
+    def delete_item(item_id: int) -> Response:
+        if not app.state.item_store.delete(item_id):
+            raise HTTPException(status_code=404, detail="Item not found")
+        return Response(status_code=204)
 
     return app
 

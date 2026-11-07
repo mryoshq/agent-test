@@ -35,6 +35,9 @@ class ItemStore:
         self._items[item_id] = item
         return item
 
+    def delete(self, item_id: int) -> bool:
+        return self._items.pop(item_id, None) is not None
+
     def list_items(self, offset: int = 0, limit: int = 10) -> ItemPage:
         item_ids = sorted(self._items)[offset : offset + limit]
         return ItemPage(
