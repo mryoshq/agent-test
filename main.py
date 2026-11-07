@@ -45,6 +45,13 @@ def create_app() -> FastAPI:
             raise HTTPException(status_code=404, detail="Item not found")
         return item
 
+    @app.put("/items/{item_id}", response_model=Item)
+    def update_item(item_id: int, request: ItemRequest) -> Item:
+        item = app.state.item_store.update(item_id, request.name, request.price)
+        if item is None:
+            raise HTTPException(status_code=404, detail="Item not found")
+        return item
+
     return app
 
 

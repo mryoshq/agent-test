@@ -28,6 +28,13 @@ class ItemStore:
     def get(self, item_id: int) -> Item | None:
         return self._items.get(item_id)
 
+    def update(self, item_id: int, name: str, price: float) -> Item | None:
+        if item_id not in self._items:
+            return None
+        item = Item(id=item_id, name=name, price=price)
+        self._items[item_id] = item
+        return item
+
     def list_items(self, offset: int = 0, limit: int = 10) -> ItemPage:
         item_ids = sorted(self._items)[offset : offset + limit]
         return ItemPage(
